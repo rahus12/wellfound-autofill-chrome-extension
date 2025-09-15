@@ -1,0 +1,74 @@
+[
+    {
+        "title": "Job Description",
+        "content": [
+            {
+                "text": "We are seeking a Senior Full-Stack Engineer to join our software development team. In this role, you will be using multiple coding agents in parallel (Claude Code, Cursor background agents, or Devin) to develop and maintain our web applications at scale."
+            },
+            {
+                "text": "At Dreamwave, we use React, Tailwind, Next.js, Node.js, Postgres, GCP, and Typescript. Strong knowledge of SQL queries is important."
+            },
+            {
+                "text": "Experience with ML engineering is a plus but not required. (PyTorch, Kubernetes, Google Cloud)"
+            },
+            {
+                "text": "To apply, please answer these questions below in the written portion of your application:"
+            }
+        ]
+    },
+    {
+        "title": "Technical Requirements",
+        "content": [
+            {
+                "items": [
+                    "Strong debugging skills (especially with debugging AI-written code)",
+                    "Conscientious about testing (especially with AI-written code)",
+                    "Ability to monitor your coding agents at scale (Claude Code, Cursor background agents, or Devin)",
+                    "Strong prompt engineering skills",
+                    "Previous experience building AI agents (at hackathons, side projects, etc.)",
+                    "5+ years of experience in full-stack development",
+                    "Thorough experience with Dreamwave's tech stack (React, Tailwind, Typescript, Next.js, Node.js, Postgres, and GCP)",
+                    "Strong knowledge and ability to debug SQL queries",
+                    "Experience with cloud platforms (AWS, Google Cloud, Azure)",
+                    "Strong problem-solving skills and ability to think algorithmically"
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Non-technical requirements",
+        "content": [
+            {
+                "items": [
+                    "Strong design skills: Strong intuitive understanding of visual design principles. A keen eye for aesthetics, user flow, and the finer details that elevate a product from good to great. You will need to evaluate the designs that Claude Code comes up with in order to ship full-stack features end-to-end.",
+                    "Early-stage startup experience: You’ve built products from scratch (0 to 1) and thrive in a fast-paced, ever-evolving environment.",
+                    "High user empathy: You put the customer first, ensuring their experience drives design and product decisions.",
+                    "Excellent communication skills."
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Alignment with Our Values:",
+        "content": [
+            {
+                "items": [
+                    "Results-Oriented: You measure success by outcomes, not just effort, and take pride in shipping exceptional work.",
+                    "Clear Decision-Making: You prioritize thoughtfully, focus on the highest-impact tasks, and work resourcefully with limited time and budget.",
+                    "Focused Execution: You hold yourself accountable, deliver reliably, and align with our shared vision and goals.",
+                    "Growth Mentality: You constantly strive to 10X yourself, welcome feedback, and seek to improve daily.",
+                    "Kindness & Respect: You communicate with empathy, respect, and care while fostering a collaborative and supportive team environment.",
+                    "Ambition & Speed: You move quickly without sacrificing quality, and your optimism fuels your drive to overcome obstacles."
+                ]
+            }
+        ]
+    },
+    {
+        "title": "Meet your team",
+        "content": []
+    },
+    {
+        "title": "Similar jobs to Senior Full-Stack Software Engineer at Dreamwave AI",
+        "content": []
+    }
+]
