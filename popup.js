@@ -1,18 +1,104 @@
 document.addEventListener('DOMContentLoaded', function() {
-console.log("entered the extension")
-  const myButton = document.getElementById('autofill');
-  if (!myButton){
-    console.log("no button found")
-    return
-  }
-    myButton.addEventListener('click', async function() {
-      // Your code to execute when the button is clicked
-      console.log("button clicked")
-      await handleClick();
-    });
+    checkAndSetInitialUI();
 });
 
-async function handleClick() {
+// Function to handle UI state based on API key presence
+function showAutofillSection() {
+    document.getElementById('autofill-container').style.display = 'block';
+    document.getElementById('settings-container').style.display = 'none';
+}
+
+function showSettingsSection() {
+    document.getElementById('autofill-container').style.display = 'none';
+    document.getElementById('settings-container').style.display = 'block';
+}
+
+async function checkAndSetInitialUI() {
+    const items = await chrome.storage.sync.get('apiKey');
+    const apiKey = items.apiKey;
+    
+    // Check if an API key is already in storage
+    if (apiKey) {
+        // If a key exists, show the autofill button and attach its event listener
+        showAutofillSection();
+        const autofillButton = document.getElementById('autofill');
+        if (autofillButton) {
+            autofillButton.addEventListener('click', async () => {
+                await handleClick(apiKey);
+            });
+        }
+    } else {
+        // If no key exists, show the settings form
+        showSettingsSection();
+    }
+    
+    // Attach event listeners for the buttons that are always present
+    const saveButton = document.getElementById('save-button');
+    if (saveButton) {
+        saveButton.addEventListener('click', handleSaveButtonClick);
+    }
+
+    const changeKeyButton = document.getElementById('change-key-button');
+    if (changeKeyButton) {
+        changeKeyButton.addEventListener('click', () => {
+            showSettingsSection();
+            const apiKeyInput = document.getElementById('api-key');
+            if (apiKeyInput) {
+                // Pre-fill the input with the current key for editing
+                apiKeyInput.value = apiKey || ''; 
+            }
+        });
+    }
+}
+
+async function handleSaveButtonClick() {
+    const apiKeyInput = document.getElementById('api-key');
+    const successMessage = document.getElementById('success-message');
+    const apiKey = apiKeyInput.value.trim();
+
+    if (apiKey) {
+        // Here, you could add a validity check for the API key if you want
+        // For example:
+        // const isValid = await validateApiKey(apiKey);
+        // if (isValid) { ... }
+
+        await chrome.storage.sync.set({ 'apiKey': apiKey });
+        successMessage.textContent = 'Settings saved successfully!';
+        
+        // Hide message after 2 seconds
+        setTimeout(() => {
+            successMessage.textContent = '';
+        }, 2000);
+        
+        // Switch to the autofill section after saving
+        showAutofillSection();
+    } else {
+        successMessage.textContent = 'Please enter a valid key.';
+    }
+}
+
+async function checkApiKeyAndHandleClick() {
+    // Check if the API key is set in storage
+    const items = await chrome.storage.sync.get('apiKey');
+    console.log(items)
+    const apiKey = items.apiKey;
+
+    if (!apiKey) {
+        // If no API key is found, redirect to options.html
+        console.log("API key not found, redirecting to options page.");
+        chrome.tabs.create({
+            url: 'options.html',
+            active: true
+        });
+        return;
+    }
+
+    // If API key is found, proceed with the original handleClick logic
+    console.log("API key found, proceeding with autofill.");
+    await handleClick(apiKey);
+}
+
+async function handleClick(apiKey) {
     console.log("handle click called")
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     try {
@@ -43,10 +129,10 @@ async function handleClick() {
 
         // Step 4: get the required answer from Gemini
         // this must not be done via execute script
-        let geminiResponse = await generateResponse(extractedJobData, extractedQuestion);
+        let geminiResponse = await generateResponse(extractedJobData, extractedQuestion, apiKey);
         // console.log(geminiResponse)
         const geminiText = geminiResponse?.candidates?.[0]?.content?.parts?.[0]?.text;
-        console.log(geminiText)
+        // console.log(geminiText)
 
         // Step 5: Input the answer in the text area
         await chrome.scripting.executeScript({
@@ -63,37 +149,6 @@ async function handleClick() {
 
 
 // Call handleClick to attach the event listener
-
-function extractData() {
-    const jobDetail = document.querySelector('[data-test="JobDetail"]')
-    const h3s = jobDetail.querySelectorAll('h3');
-
-    const result = [];
-
-    h3s.forEach(h3 => {
-        // creates a map for each h3 element
-        const section = { title: h3.textContent.trim(), content: [] };
-        let sibling = h3.nextElementSibling;
-
-        while (sibling && sibling.tagName !== 'H3') {
-            if (sibling.tagName === 'P') {
-                section.content.push({ text: sibling.textContent.trim() });
-            } else if (sibling.tagName === 'UL') {
-                const items = Array.from(sibling.querySelectorAll('li')).map(li => li.textContent.trim());
-                section.content.push({ items });
-            } else if (sibling.tagName === 'LI') {
-                section.content.push({ text: sibling.textContent.trim() });
-            }
-            sibling = sibling.nextElementSibling;
-        }
-
-        result.push(section);
-
-    });
-    console.log(result);
-    return result
-    
-}
 
 function extractAllTextData() {
     // Select all the desired elements at once using a comma-separated list
@@ -115,8 +170,14 @@ function extractAllTextData() {
 
 function clickApply(){
     // need to add a function to check for "a" tag for y combinator
-    let buttons = document.querySelectorAll('button');
+    const url = window.location.href
+    let buttons;
     let applyButton;
+    if (url.includes("wellfound")){
+         buttons = document.querySelectorAll('button');
+    } else if (url.includes("workatastartup")){
+         buttons = document.querySelectorAll('a')
+    }
 
     buttons.forEach(button => {
         if (button.textContent.trim().toLowerCase() === "apply"){
@@ -143,7 +204,7 @@ function extractQuestion(){
 }
 
 // unsafe function - get response from gemini
-function generateResponse(data, question){
+function generateResponse(data, question, apiKey){
     const jobData = JSON.stringify(data)
 
     
@@ -171,7 +232,7 @@ function generateResponse(data, question){
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-goog-api-key' : ''
+        'X-goog-api-key' : apiKey
       },
       body: JSON.stringify(requestBody)
     };
