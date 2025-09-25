@@ -1,5 +1,6 @@
 /*global chrome*/
 import React, { useState, useEffect } from 'react';
+import SettingsForm from './SettingsForm';
 
 const Popup = () => {
   const [apiKey, setApiKey] = useState(null);
@@ -17,7 +18,6 @@ const Popup = () => {
 
   const handleAutofill = async () => {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    console.log("Entered the handle function")
     try {
         // Step 1: Execute extractData on the active tab to get the job description.
         const extractionResults = await chrome.scripting.executeScript({
@@ -71,27 +71,7 @@ const Popup = () => {
   };
 
   if (showSettings) {
-    return (
-      <div>
-        <h1>AI Summary Settings</h1>
-        <div className="form-group">
-          <label htmlFor="api-key">Gemini API Key:</label>
-          <input
-            type="text"
-            id="api-key"
-            placeholder="Enter your Gemini API key"
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-          <p>
-            You can get an API key from{' '}
-            <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noreferrer">
-              Google AI Studio
-            </a>
-          </p>
-        </div>
-        <button onClick={() => handleSaveApiKey(apiKey)}>Save Settings</button>
-      </div>
-    );
+    return <SettingsForm initialApiKey={apiKey} onSave={handleSaveApiKey} />;
   }
 
   return (
