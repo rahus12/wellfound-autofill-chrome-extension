@@ -1,6 +1,6 @@
 /*global chrome*/
 import React, { useState, useEffect } from 'react';
-import SettingsForm from './SettingsForm';
+import Settings from './Settings';
 
 const Popup = () => {
   const [apiKey, setApiKey] = useState(null);
@@ -17,7 +17,9 @@ const Popup = () => {
   }, []);
 
   const handleAutofill = async () => {
+    const { resumeContent } = await chrome.storage.local.get('resumeContent');
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
     try {
         // Step 1: Execute extractData on the active tab to get the job description.
         const extractionResults = await chrome.scripting.executeScript({
@@ -26,7 +28,6 @@ const Popup = () => {
         });
     
         const extractedJobData = extractionResults[0].result;
-        console.log(extractedJobData);
 
         // Step 2: Now that data is extracted, run a new script to click the button.
         await chrome.scripting.executeScript({
@@ -34,22 +35,17 @@ const Popup = () => {
             function: clickApply
         });
 
-        //step 3: Get the question
+        // Step 3: Get the question
         let question = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: extractQuestion
         });
 
-        // Assuming 'extractQuestionInPage' returns an object from the page
-        // The result is an array of objects, so we need to access the first element.
         const extractedQuestion = question[0].result;
 
-        // Step 4: get the required answer from Gemini
-        // this must not be done via execute script
-        let geminiResponse = await generateResponse(extractedJobData, extractedQuestion, apiKey);
-        // console.log(geminiResponse)
+        // Step 4: Get the required answer from Gemini
+        let geminiResponse = await generateResponse(extractedJobData, extractedQuestion, apiKey, resumeContent);
         const geminiText = geminiResponse?.candidates?.[0]?.content?.parts?.[0]?.text;
-        // console.log(geminiText)
 
         // Step 5: Input the answer in the text area
         await chrome.scripting.executeScript({
@@ -71,7 +67,7 @@ const Popup = () => {
   };
 
   if (showSettings) {
-    return <SettingsForm initialApiKey={apiKey} onSave={handleSaveApiKey} />;
+    return <Settings initialApiKey={apiKey} onSave={handleSaveApiKey} />;
   }
 
   return (
@@ -86,71 +82,52 @@ const Popup = () => {
 // These functions are injected into the page, so they need to be self-contained.
 
 function extractAllTextData() {
-    // Select all the desired elements at once using a comma-separated list
     const elements = document.querySelectorAll('h1, h2, h3, p, strong, li');
-    
-    // Create an empty array to store the extracted text
     const extractedText = [];
-
-    // Loop through each element in the NodeList
     elements.forEach(element => {
-        // Extract the trimmed text content and add it to the array
         extractedText.push(element.textContent.trim());
     });
-    
-    // Log and return the array of extracted text
-    console.log(extractedText);
     return extractedText;
 }
 
 function clickApply(){
-    // need to add a function to check for "a" tag for y combinator
-    const url = window.location.href
+    const url = window.location.href;
     let buttons;
     let applyButton;
     if (url.includes("wellfound")){
          buttons = document.querySelectorAll('button');
     } else if (url.includes("workatastartup")){
-         buttons = document.querySelectorAll('a')
+         buttons = document.querySelectorAll('a');
     }
 
     buttons.forEach(button => {
         if (button.textContent.trim().toLowerCase() === "apply"){
-            applyButton = button
-            
+            applyButton = button;
         }
-    })
+    });
 
     if (applyButton){
         applyButton.click();
     } else {
-        console.log("could not find the apply button")
+        console.log("could not find the apply button");
     }
-
 }
 
-// get the question
 function extractQuestion(){
-    // lets assume only one text area
-    // we use textArea as its a fixed/ stable element
-    let textArea = document.querySelector('textarea')
-    let question = textArea.parentElement.previousElementSibling.textContent
-    return question
+    let textArea = document.querySelector('textarea');
+    let question = textArea.parentElement.previousElementSibling.textContent;
+    return question;
 }
 
-// unsafe function - get response from gemini
-function generateResponse(data, question, apiKey){
-    const jobData = JSON.stringify(data)
+function generateResponse(data, question, apiKey, resumeContent){
+    const jobData = JSON.stringify(data);
 
-    
-    const fullPrompt = `You are given a structured JSON input regarding a job in the form of 'title' and 'content'. 
-    JSON input: ${jobData}
-    Question: ${question}
-    Answer the question in one paragraph only. DO NOT INCLUDE any citations or variables. Return a complete answer.`;
+    const resumePrompt = resumeContent 
+      ? `Use the following resume for context: ${resumeContent}`
+      : 'There is no resume provided.';
 
-    console.log(fullPrompt)
+    const fullPrompt = `${resumePrompt}\n\nYou are given a structured JSON input regarding a job in the form of 'title' and 'content'. \nJSON input: ${jobData}\n\nQuestion: ${question}\n\nAnswer the question in one paragraph only based on the provided resume and job data. DO NOT INCLUDE any citations or variables. Return a complete answer.`;
 
-    // Construct the request body in the format the Gemini API expects
     const requestBody = {
         contents: [
         {
@@ -174,19 +151,16 @@ function generateResponse(data, question, apiKey){
     
     return fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent", requestOptions)
       .then(response => {
-        // Handle the response
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json(); // Or response.text() if expecting text
-      })
-      
+        return response.json();
+      });
 }
 
 function writeResponse(respData){
-    let textArea = document.querySelector('textarea')
-    textArea.textContent = respData
+    let textArea = document.querySelector('textarea');
+    textArea.textContent = respData;
 }
-
 
 export default Popup;
