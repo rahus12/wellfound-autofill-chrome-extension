@@ -1,0 +1,57 @@
+/* SettingsForm.css */
+
+.settings-form-container {
+  margin-bottom: 30px;
+}
+
+.settings-form-header {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.settings-form-group {
+  margin-bottom: 20px;
+}
+
+.settings-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #aaaaaa;
+}
+
+.settings-form-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #333;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.settings-form-button {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.settings-form-button:hover {
+  background-color: #c0392b;
+}
+
+.success-message {
+  color: #27ae60;
+  font-size: 14px;
+  margin-top: 10px;
+}

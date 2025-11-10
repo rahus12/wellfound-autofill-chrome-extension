@@ -1,5 +1,6 @@
 /*global chrome*/
 import React, { useState, useEffect } from 'react';
+import './ResumeForm.css';
 
 const ResumeForm = () => {
   const [successMessage, setSuccessMessage] = useState('');
@@ -50,16 +51,16 @@ const ResumeForm = () => {
   };
 
   return (
-    <div>
+    <div className="resume-form-container">
       <hr style={{ margin: '20px 0' }} />
-      <h2>Resume Management</h2>
-      <div className="form-group">
-        <label htmlFor="resume-upload">Upload Resume (.txt only):</label>
-        <input type="file" id="resume-upload" accept=".txt" onChange={handleFileChange} />
+      <h2 className="resume-form-header">Resume Management</h2>
+      <div className="resume-form-group">
+        <label htmlFor="resume-upload" className="resume-form-label">Upload Resume (.txt only):</label>
+        <input type="file" id="resume-upload" accept=".txt" onChange={handleFileChange} className="resume-form-input"/>
       </div>
       {resumeName && <p>Current resume: {resumeName}</p>}
-      <button onClick={handleResumeUpload}>Upload Resume</button>
-      {resumeName && <button onClick={handleResumeRemove} style={{backgroundColor: '#e74c3c', marginLeft: '10px'}}>Remove Resume</button>}
+      <button onClick={handleResumeUpload} className="resume-form-button">Upload Resume</button>
+      {resumeName && <button onClick={handleResumeRemove} className="resume-form-button remove-button">Remove Resume</button>}
       {successMessage && <p className="success-message">{successMessage}</p>}
     </div>
   );

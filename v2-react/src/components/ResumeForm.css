@@ -1,0 +1,60 @@
+/* ResumeForm.css */
+
+.resume-form-container {
+  margin-top: 20px;
+}
+
+.resume-form-header {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #ffffff;
+}
+
+.resume-form-group {
+  margin-bottom: 20px;
+}
+
+.resume-form-label {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #aaaaaa;
+}
+
+.resume-form-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #333;
+  background-color: #2a2a2a;
+  color: #ffffff;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.resume-form-button {
+  background: #333333;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+  margin-right: 10px;
+}
+
+.resume-form-button:hover {
+  background-color: #e74c3c;
+}
+
+.remove-button {
+  background: #e74c3c;
+}
+
+.remove-button:hover {
+  background-color: #c0392b;
+}

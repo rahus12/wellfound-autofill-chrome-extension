@@ -1,5 +1,5 @@
-/*global chrome*/
 import React, { useState, useEffect } from 'react';
+import './SettingsForm.css';
 
 const SettingsForm = ({ initialApiKey, onSave }) => {
   const [apiKey, setApiKey] = useState(initialApiKey || '');
@@ -20,16 +20,17 @@ const SettingsForm = ({ initialApiKey, onSave }) => {
   };
 
   return (
-    <div>
-      <h1>AI Summary Settings</h1>
-      <div className="form-group">
-        <label htmlFor="api-key">Gemini API Key:</label>
+    <div className="settings-form-container">
+      <h2 className="settings-form-header">AI Summary Settings</h2>
+      <div className="settings-form-group">
+        <label htmlFor="api-key" className="settings-form-label">Gemini API Key:</label>
         <input
           type="text"
           id="api-key"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           placeholder="Enter your Gemini API key"
+          className="settings-form-input"
         />
         <p>
           You can get an API key from{' '}
@@ -38,7 +39,7 @@ const SettingsForm = ({ initialApiKey, onSave }) => {
           </a>
         </p>
       </div>
-      <button onClick={handleSaveClick}>Save Settings</button>
+      <button onClick={handleSaveClick} className="settings-form-button">Save Settings</button>
       {successMessage && <p className="success-message">{successMessage}</p>}
     </div>
   );

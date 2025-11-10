@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "version": "2.0.0",
-    "name": "Wellfound-autofill (React)",
+    "name": "Nah,Fr",
     "permissions": ["scripting", "activeTab", "storage"],
     "action": {
         "default_popup": "index.html",

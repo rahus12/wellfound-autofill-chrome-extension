@@ -1,0 +1,31 @@
+/* Options.css */
+
+.options-container {
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.options-header {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.options-list {
+  list-style: none;
+  padding: 0;
+}
+
+.options-list-item {
+  margin-bottom: 10px;
+}
+
+.options-list-item a {
+  text-decoration: none;
+  color: #333;
+  font-size: 16px;
+}
+
+.options-list-item a:hover {
+  color: #007bff;
+}
