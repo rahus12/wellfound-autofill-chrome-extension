@@ -22,15 +22,36 @@ const Popup = () => {
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
 
     try {
-        // Step 1: Execute extractData on the active tab to get the job description.
-        const extractionResults = await chrome.scripting.executeScript({
+        // Check if it's an Ashby application page
+        const urlCheck = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            function: extractAllTextData
+            function: () => {
+                const url = window.location.href;
+                return url.includes('ashbyhq.com') && url.includes('application');
+            }
         });
-    
-        const extractedJobData = extractionResults[0].result;
 
-        // Step 2: Now that data is extracted, run a new script to click the button.
+        const isAshbyApplication = urlCheck[0].result;
+        let extractedJobData;
+
+        if (isAshbyApplication) {
+            // For Ashby, scrape the overview page using a hidden tab
+            const overviewUrl = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                function: () => window.location.href.replace(/\/?application\/?$/, '')
+            });
+
+            extractedJobData = await scrapeAshbyOverview(overviewUrl[0].result);
+        } else {
+            // Regular extraction from current page
+            const extractionResults = await chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                function: extractAllTextData
+            });
+            extractedJobData = extractionResults[0].result;
+        }
+
+        // Step 2: Click the apply button
         await chrome.scripting.executeScript({
             target: { tabId: tab.id },
             function: clickApply
@@ -58,6 +79,43 @@ const Popup = () => {
     } catch (error) {
         console.error("Failed to execute script:", error);
     }
+  };
+
+  // New function to scrape Ashby overview page in a hidden tab
+  const scrapeAshbyOverview = async (url) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Create hidden tab
+        const newTab = await chrome.tabs.create({ url: url, active: false });
+        
+        // Wait for page to fully load
+        chrome.tabs.onUpdated.addListener(function listener(tabId, info) {
+          if (tabId === newTab.id && info.status === 'complete') {
+            chrome.tabs.onUpdated.removeListener(listener);
+            
+            // Extract content from the loaded page
+            chrome.scripting.executeScript({
+              target: { tabId: newTab.id },
+              function: () => {
+                const elements = document.querySelectorAll('h1, p, li, span');
+                return Array.from(elements)
+                  .map(el => el.textContent.trim())
+                  .filter(text => text.length > 0);
+              }
+            }).then(results => {
+              // Close the tab
+              chrome.tabs.remove(newTab.id);
+              resolve(results[0].result);
+            }).catch(error => {
+              chrome.tabs.remove(newTab.id);
+              reject(error);
+            });
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   const handleSaveApiKey = (newApiKey) => {
@@ -92,42 +150,14 @@ const Popup = () => {
   );
 };
 
-// These functions are injected into the page, so they need to be self-contained.
-
-async function extractAllTextData() {
+// Regular extraction for non-Ashby pages
+function extractAllTextData() {
   const extractedText = [];
-
-  // Check if current page is an Ashby application page
-  const currentUrl = window.location.href;
-  const isAshby = currentUrl.includes('ashbyhq.com') && currentUrl.includes('application');
-
-  // If it's an Ashby application page, fetch the overview page instead
-  // this is a bad way because there is toooo much content in html
-  if (isAshby) {
-    try {
-      const overviewUrl = currentUrl.replace(/\/?application\/?$/, '');
-      const response = await fetch(overviewUrl, { credentials: 'include' });
-      const htmlText = await response.text();
-
-      const lines = htmlText
-        .split('\n')
-        .map(line => line.trim())
-        .filter(line => line.length > 0); // remove empty lines
-
-  return lines;
-      
-    } catch (err) {
-      console.error('Error fetching Ashby overview page:', err);
-    }
-  } else {
-    // Regular case: extract from current document
-    const elements = document.querySelectorAll('h1, h2, h3, p, strong, li');
-    elements.forEach(el => {
-      const text = el.textContent.trim();
-      if (text) extractedText.push(text);
-    });
-  }
-
+  const elements = document.querySelectorAll('h1, h2, h3, p, strong, li');
+  elements.forEach(el => {
+    const text = el.textContent.trim();
+    if (text) extractedText.push(text);
+  });
   return extractedText;
 }
 
@@ -140,7 +170,6 @@ function clickApply(){
     } else if (url.includes("workatastartup")){
          buttons = document.querySelectorAll('a');
     }
-
     else{
       return;
     }
@@ -161,8 +190,6 @@ function clickApply(){
 function extractQuestion(){
     let textArea = document.querySelector('textarea');
     let question = textArea.previousElementSibling?.textContent || textArea.parentElement?.previousElementSibling?.textContent ||'';
-    
-    // console.log("Question: " +question)
     return question;
 }
 
@@ -185,7 +212,7 @@ async function generateResponse(data, question, apiKey, resumeContent){
     - DO NOT exceed a word count of 500
     - Return a complete answer.`;
 
-    console.log(fullPrompt)
+    console.log(fullPrompt);
 
     const requestBody = {
         contents: [
